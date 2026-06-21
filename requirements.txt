@@ -1,8 +1,8 @@
-ccxt
 requests
 pandas
-pycoingecko
 sqlalchemy
 pymysql
 python-dotenv
 yfinance
+fastapi
+uvicorn[standard]
