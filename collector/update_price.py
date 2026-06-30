@@ -50,9 +50,6 @@ if isinstance(df.columns, pd.MultiIndex):
 
 df = df.reset_index()
 
-print("컬럼 확인")
-print(df.columns)
-
 # ==================================================
 # 최신 행
 # ==================================================
