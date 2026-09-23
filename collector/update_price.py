@@ -51,28 +51,20 @@ if isinstance(df.columns, pd.MultiIndex):
 df = df.reset_index()
 
 # ==================================================
-# 최신 행
-# ==================================================
-
-latest_row = df.iloc[-1]
-
-# ==================================================
 # timestamp 처리
+#
+# period="2d" 로 받아온 행 전체를 저장한다.
+# (마지막 1건만 저장하면, 수집이 중간에
+#  끊겼다가 재개될 때 그 사이 시간대가
+#  영구 결측으로 남는다)
 # ==================================================
 
-timestamp = latest_row["Datetime"]
+df["Datetime"] = pd.to_datetime(df["Datetime"])
 
-# timezone 제거
-if getattr(timestamp, "tzinfo", None) is not None:
-    timestamp = timestamp.tz_convert(None)
+if df["Datetime"].dt.tz is not None:
+    df["Datetime"] = df["Datetime"].dt.tz_convert(None)
 
-timestamp = timestamp.floor("h")
-
-# ==================================================
-# 가격
-# ==================================================
-
-price = float(latest_row["Close"])
+df["Datetime"] = df["Datetime"].dt.floor("h")
 
 # ==================================================
 # DB 저장
@@ -80,30 +72,35 @@ price = float(latest_row["Close"])
 
 with engine.begin() as conn:
 
-    conn.execute(
-        text("""
-        INSERT INTO market_price
-        (
-            timestamp,
-            btc_price
-        )
-        VALUES
-        (
-            :timestamp,
-            :price
+    for _, row in df.iterrows():
+
+        conn.execute(
+            text("""
+            INSERT INTO market_price
+            (
+                timestamp,
+                btc_price
+            )
+            VALUES
+            (
+                :timestamp,
+                :price
+            )
+
+            ON DUPLICATE KEY UPDATE
+
+            btc_price = VALUES(btc_price)
+            """),
+            {
+                "timestamp": row["Datetime"],
+                "price": float(row["Close"])
+            }
         )
 
-        ON DUPLICATE KEY UPDATE
-
-        btc_price = VALUES(btc_price)
-        """),
-        {
-            "timestamp": timestamp,
-            "price": price
-        }
-    )
+latest_row = df.iloc[-1]
 
 print()
 print("BTC 가격 저장 완료")
-print(f"시간 : {timestamp}")
-print(f"가격 : {price}")
+print(f"건수 : {len(df)}건 (최근 2일 구간 upsert)")
+print(f"최신 시간 : {latest_row['Datetime']}")
+print(f"최신 가격 : {float(latest_row['Close'])}")

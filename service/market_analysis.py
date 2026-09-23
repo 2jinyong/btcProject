@@ -71,10 +71,24 @@ def get_market_analysis():
 
     # ==========================================
     # MA200
+    #
+    # 시간봉을 일봉(일별 종가)으로
+    # 리샘플링한 뒤 200일 이동평균을
+    # 계산합니다.
+    # (시간봉 그대로 rolling(200)을
+    #  적용하면 200시간 평균이 되어버림)
     # ==========================================
 
-    price_df["ma200"] = (
-        price_df["btc_price"]
+    daily_df = (
+        price_df
+        .assign(date=price_df["timestamp"].dt.date)
+        .groupby("date")["btc_price"]
+        .last()
+        .reset_index()
+    )
+
+    daily_df["ma200"] = (
+        daily_df["btc_price"]
         .rolling(200)
         .mean()
     )
@@ -85,7 +99,7 @@ def get_market_analysis():
         latest_price["btc_price"]
     )
 
-    ma200 = latest_price["ma200"]
+    ma200 = daily_df.iloc[-1]["ma200"]
 
     if pd.isna(ma200):
         ma200 = current_price
