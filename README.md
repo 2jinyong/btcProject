@@ -33,8 +33,6 @@ btcProject/
 │   ├── init_fear_data.py    # [초기 1회] 공포탐욕지수 전체 이력 적재
 │   ├── update_price.py      # [cron] 매시간 최신 BTC 가격 저장
 │   └── update_indicator.py  # [cron] 매일 시장 지표 저장
-├── docs/
-│   └── study_guide.md       # 프로젝트 학습 가이드 (문법·라이브러리 설명)
 ├── service/
 │   └── market_analysis.py   # 분석 비즈니스 로직
 ├── sql/
@@ -219,12 +217,3 @@ MA200과 공포탐욕지수를 기반으로 점수를 산출해 시장 상태를
   ]
 }
 ```
-
----
-
-## 학습 가이드
-
-이 프로젝트에서 사용된 Python 문법, pandas, SQLAlchemy, FastAPI, requests, yfinance 등  
-모든 라이브러리 사용법을 예제 중심으로 정리한 문서입니다.
-
-**[docs/study_guide.md](docs/study_guide.md)**
